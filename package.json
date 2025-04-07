@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest",
-    "start": "npx tsc && node index.js",
+    "start": "npx tsc && node dist/index.js",
     "build": "tsc"
   },
   "keywords": [],

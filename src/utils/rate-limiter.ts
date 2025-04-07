@@ -6,8 +6,6 @@ export const blingLimiter = new Bottleneck({
 })
 
 export const ploomesLimiter = new Bottleneck({
-  reservoir: 120, // total por minuto
-  reservoirRefreshAmount: 120,
-  reservoirRefreshInterval: 60 * 1000, // a cada 1 minuto
+  minTime: 500,
   maxConcurrent: 1,
 })
