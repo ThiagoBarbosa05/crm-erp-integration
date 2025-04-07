@@ -46,5 +46,5 @@ jobs:
       - name: Deploy to Lambda
         run: |
           aws lambda update-function-code \
-            --function-name minha-funcao-lambda \
+            --function-name ErpCrmIntegration \
             --zip-file fileb://lambda.zip
