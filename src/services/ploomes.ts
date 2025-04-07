@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ploomesLimiter } from '../utils/rate-limiter'
 import { retryWithBackOff } from './retry'
-import 'dotenv/config'
+// import 'dotenv/config'
 import { CreatePloomesContact } from '../interfaces/create-ploomes-contact'
 import { CreatePloomesTask } from '../interfaces/create-ploomes-task'
 
