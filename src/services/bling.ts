@@ -5,7 +5,6 @@ import axios from 'axios'
 import { BlingNfe } from '../interfaces/bling-nfe'
 import { BlingContactDetails } from '../interfaces/bling-contact-details'
 import { blingLimiter } from '../utils/rate-limiter'
-import { retryWithBackOff } from './retry'
 
 export async function getBlingNfes() {
   const accessToken = await getBlingAccessToken()
@@ -40,13 +39,11 @@ export async function getBlingContact(
   const accessToken = await getBlingAccessToken()
 
   const response = await blingLimiter.schedule(() =>
-    retryWithBackOff(() =>
-      axios.get(`https://api.bling.com.br/Api/v3/contatos/${id}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }),
-    ),
+    axios.get(`https://api.bling.com.br/Api/v3/contatos/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }),
   )
 
   return response.data

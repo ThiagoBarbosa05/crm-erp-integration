@@ -1,10 +1,9 @@
 import axios from 'axios'
 
-// import 'dotenv/config'
+import 'dotenv/config'
 import { CreatePloomesContact } from '../interfaces/create-ploomes-contact'
 import { CreatePloomesTask } from '../interfaces/create-ploomes-task'
 import { ploomesLimiter } from '../utils/rate-limiter'
-import { retryWithBackOff } from './retry'
 
 export async function getContactLocation(
   cityName: string,
@@ -16,13 +15,11 @@ export async function getContactLocation(
   }
 
   const response = await ploomesLimiter.schedule(() =>
-    retryWithBackOff(() =>
-      axios.get<{ value: { Id: number; StateId: number }[] }>(
-        `https://api2.ploomes.com/Cities?$filter=Name+eq+'${cityName}'`,
-        {
-          headers: { 'User-Key': `${process.env.PLOOMES_USER_KEY}` },
-        },
-      ),
+    axios.get<{ value: { Id: number; StateId: number }[] }>(
+      `https://api2.ploomes.com/Cities?$filter=Name+eq+'${cityName}'`,
+      {
+        headers: { 'User-Key': `${process.env.PLOOMES_USER_KEY}` },
+      },
     ),
   )
 
@@ -41,13 +38,11 @@ export async function existingPloomesContact(
   document: string,
 ): Promise<number | null> {
   const response = await ploomesLimiter.schedule(() =>
-    retryWithBackOff(() =>
-      axios.get(
-        `https://api2.ploomes.com/Contacts?$filter=(((TypeId+eq+1)))+and+TypeId+eq+1+and+Register+eq+%27${document}%27&$expand=Owner($select=Id,Name,Email)&preload=true`,
-        {
-          headers: { 'User-Key': `${process.env.PLOOMES_USER_KEY}` },
-        },
-      ),
+    axios.get(
+      `https://api2.ploomes.com/Contacts?$filter=(((TypeId+eq+1)))+and+TypeId+eq+1+and+Register+eq+%27${document}%27&$expand=Owner($select=Id,Name,Email)&preload=true`,
+      {
+        headers: { 'User-Key': `${process.env.PLOOMES_USER_KEY}` },
+      },
     ),
   )
 
@@ -63,33 +58,31 @@ export async function createPloomesContact(
   stateRegistration: number,
 ): Promise<number> {
   const response = await ploomesLimiter.schedule(() =>
-    retryWithBackOff(() =>
-      axios.post(
-        'https://api2.ploomes.com/Contacts',
-        {
-          ...contact,
-          TypeId: 1,
-          OtherProperties: [
-            {
-              FieldKey: 'contact_FA7A15F7-5ED9-4730-AB2E-8F090180F4B7', // ja vende vinhos?
-              IntegerValue: 795033, // SIM
-            },
-            {
-              FieldKey: 'contact_467DDF14-FCC3-4AC3-8B3C-919519E1A38A', // conhence a grand cru?
-              IntegerValue: 795030, // SIM
-            },
-            {
-              FieldKey: 'contact_796DB62A-10C9-4347-B20D-29E358229CC8', // inscrição estadual
-              IntegerValue: stateRegistration,
-            },
-          ],
-        },
-        {
-          headers: {
-            'User-Key': `${process.env.PLOOMES_USER_KEY}`,
+    axios.post(
+      'https://api2.ploomes.com/Contacts',
+      {
+        ...contact,
+        TypeId: 1,
+        OtherProperties: [
+          {
+            FieldKey: 'contact_FA7A15F7-5ED9-4730-AB2E-8F090180F4B7', // ja vende vinhos?
+            IntegerValue: 795033, // SIM
           },
+          {
+            FieldKey: 'contact_467DDF14-FCC3-4AC3-8B3C-919519E1A38A', // conhence a grand cru?
+            IntegerValue: 795030, // SIM
+          },
+          {
+            FieldKey: 'contact_796DB62A-10C9-4347-B20D-29E358229CC8', // inscrição estadual
+            IntegerValue: stateRegistration,
+          },
+        ],
+      },
+      {
+        headers: {
+          'User-Key': `${process.env.PLOOMES_USER_KEY}`,
         },
-      ),
+      },
     ),
   )
 
@@ -100,13 +93,11 @@ export async function createPloomesTask(
   task: CreatePloomesTask,
 ): Promise<{ TaskId: number }> {
   const response = await ploomesLimiter.schedule(() =>
-    retryWithBackOff(() =>
-      axios.post('https://api2.ploomes.com/Tasks', task, {
-        headers: {
-          'User-Key': `${process.env.PLOOMES_USER_KEY}`,
-        },
-      }),
-    ),
+    axios.post('https://api2.ploomes.com/Tasks', task, {
+      headers: {
+        'User-Key': `${process.env.PLOOMES_USER_KEY}`,
+      },
+    }),
   )
 
   return {
