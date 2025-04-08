@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-// import 'dotenv/config'
 import { CreatePloomesContact } from '../interfaces/create-ploomes-contact'
 import { CreatePloomesTask } from '../interfaces/create-ploomes-task'
 import { ploomesLimiter } from '../utils/rate-limiter'
@@ -68,7 +67,6 @@ export async function createPloomesContact(
         'https://api2.ploomes.com/Contacts',
         {
           ...contact,
-          TypeId: 1,
           OtherProperties: [
             {
               FieldKey: 'contact_FA7A15F7-5ED9-4730-AB2E-8F090180F4B7', // ja vende vinhos?

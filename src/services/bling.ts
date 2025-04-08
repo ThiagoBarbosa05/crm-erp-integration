@@ -10,8 +10,8 @@ import { retryWithBackOff } from './retry'
 export async function getBlingNfes() {
   const accessToken = await getBlingAccessToken()
 
-  const startOfDay = dayjs().startOf('day').subtract(2, 'day')
-  const endOfDay = dayjs().endOf('day').subtract(2, 'day')
+  const startOfDay = dayjs().startOf('day').subtract(1, 'day')
+  const endOfDay = dayjs().endOf('day').subtract(1, 'day')
 
   const response = await blingLimiter.schedule(() =>
     retryWithBackOff(() =>

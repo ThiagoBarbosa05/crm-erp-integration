@@ -4,6 +4,7 @@ export interface CreatePloomesContact {
   Email: string
   ZipCode: number
   Register: string
+  OwnerId: number
   StreetAddressNumber: string
   StreetAddress: string
   Neighborhood: string

@@ -18,4 +18,7 @@ export interface BlingContactDetails {
     id: number
     descricao: string
   }
+  vendedor: {
+    id: number
+  }
 }

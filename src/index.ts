@@ -1,4 +1,5 @@
 import { getBlingContact, getBlingNfes } from './services/bling'
+import { getOwner } from './services/owner'
 
 import {
   createPloomesContact,
@@ -44,11 +45,17 @@ export const handler = async () => {
             blingContact.data.endereco.geral.municipio,
           )
 
+          logger.info(
+            `⏳ Buscando responsável pelo contato - ${nfe.contato.nome}`,
+          )
+          const owner = await getOwner(blingContact.data.vendedor.id)
+
           logger.info(`🧑‍💻 Criando contato no Ploomes - ${nfe.contato.nome}`)
           const createdPloomesContact = await createPloomesContact(
             {
               Name: blingContact.data.nome,
               LegalName: blingContact.data.fantasia,
+              OwnerId: owner.ploomesId,
               Email: blingContact.data.email,
               ZipCode: formatZipCode(blingContact.data.endereco.geral.cep),
               Register: blingContact.data.numeroDocumento,
@@ -99,3 +106,5 @@ export const handler = async () => {
     }
   }
 }
+
+handler()
