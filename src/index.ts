@@ -79,8 +79,8 @@ export const handler = async () => {
           )
           const newContactTaskCreated = await createPloomesTask({
             ContactId: createdPloomesContact,
-            Title: 'Tarefa TESTE',
-            Description: `Testando a criação de tarefa - contato ${blingContact.data.nome} criado.`,
+            Title: 'Venda Realizada',
+            Description: `Entrar em contato com o cliente.`,
           })
 
           logger.success(
@@ -92,8 +92,8 @@ export const handler = async () => {
           )
           const existingContactTaskCreated = await createPloomesTask({
             ContactId: existingPloomesContactResponse,
-            Title: 'Tarefa TESTE',
-            Description: `Testando a criação de tarefa - contato ${nfe.contato.nome} criado.`,
+            Title: 'Venda Realizada',
+            Description: `Entrar em contato com o cliente.`,
           })
 
           logger.success(
@@ -106,5 +106,3 @@ export const handler = async () => {
     }
   }
 }
-
-handler()
