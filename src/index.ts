@@ -1,4 +1,5 @@
-import { getBlingContact, getBlingNfes } from './services/bling'
+import dayjs from 'dayjs'
+import { getBlingNfes, getNfeDetails } from './services/bling'
 import { getOwner } from './services/owner'
 
 import {
@@ -11,6 +12,11 @@ import { formatZipCode } from './utils/format-zip-code'
 import { logger } from './utils/logger'
 
 export const handler = async () => {
+  const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'BRL',
+  })
+
   logger.info('📃 Listando Notas Fiscais Emitidas do Bling')
 
   const blingNfes = await getBlingNfes()
@@ -28,59 +34,77 @@ export const handler = async () => {
   } else {
     for (const nfe of blingNfes) {
       try {
+        logger.info(
+          `⏳ Buscando detalhes da nota fiscal do cliente - ${nfe.contato.nome}`,
+        )
+        const nfeDetails = await getNfeDetails(nfe.id)
+        logger.success(
+          `✅ Nota do cliente encontrada - ${nfeDetails.numero} - ${nfeDetails.valorNota}`,
+        )
+
         logger.info(`⏳ Buscando contato no Ploomes - ${nfe.contato.nome}`)
         const existingPloomesContactResponse = await existingPloomesContact(
           nfe.contato.numeroDocumento,
         )
-
         logger.success(
           `✅ Contato encontrado - ${nfe.contato.nome} - ${existingPloomesContactResponse}`,
         )
 
         if (existingPloomesContactResponse === null) {
-          logger.info(`⏳ Buscando contato no Bling - ${nfe.contato.nome}`)
-          const blingContact = await getBlingContact(nfe.contato.id)
-
           const contactLocation = await getContactLocation(
-            blingContact.data.endereco.geral.municipio,
+            nfeDetails.contato.endereco.municipio,
           )
 
           logger.info(
             `⏳ Buscando responsável pelo contato - ${nfe.contato.nome}`,
           )
-          const owner = await getOwner(blingContact.data.vendedor.id)
+          const owner = await getOwner(nfeDetails.vendedor.id)
 
           logger.info(`🧑‍💻 Criando contato no Ploomes - ${nfe.contato.nome}`)
           const createdPloomesContact = await createPloomesContact(
             {
-              Name: blingContact.data.nome,
-              LegalName: blingContact.data.fantasia,
+              Name: nfeDetails.contato.nome,
+              LegalName: nfeDetails.contato.nome,
               OwnerId: owner.ploomesId,
-              Email: blingContact.data.email,
-              ZipCode: formatZipCode(blingContact.data.endereco.geral.cep),
-              Register: blingContact.data.numeroDocumento,
+              Email: nfeDetails.contato.email,
+              ZipCode: formatZipCode(nfeDetails.contato.endereco.cep),
+              Register: nfeDetails.contato.numeroDocumento,
               CityId: contactLocation?.Id,
-              Neighborhood: `${blingContact.data.endereco.geral.bairro},  ${blingContact.data.endereco.geral.municipio}, ${blingContact.data.endereco.geral.uf}`,
+              Neighborhood: `${nfeDetails.contato.endereco.bairro},  ${nfeDetails.contato.endereco.municipio}, ${nfeDetails.contato.endereco.uf}`,
               StateId: contactLocation?.StateId,
-              StreetAddress: blingContact.data.endereco.geral.endereco,
-              StreetAddressNumber: blingContact.data.endereco.geral.numero,
-              Phones: [{ PhoneNumber: blingContact.data.celular }],
+              StreetAddress: nfeDetails.contato.endereco.endereco,
+              StreetAddressNumber: nfeDetails.contato.endereco.numero,
+              Phones: [{ PhoneNumber: nfeDetails.contato.telefone }],
               TypeId: 1,
             },
-            Number(blingContact.data.ie),
+            Number(nfeDetails.contato.ie),
           )
 
           logger.success(
-            `✅ Contato ${createdPloomesContact} - ${blingContact.data.fantasia} criado com sucesso`,
+            `✅ Contato ${createdPloomesContact} - ${nfeDetails.contato.nome} criado com sucesso`,
           )
 
           logger.info(
-            `🧑‍💻 Criando tarefa para o contato ${blingContact.data.fantasia}`,
+            `🧑‍💻 Criando tarefa para o contato ${nfeDetails.contato.nome}`,
           )
           const newContactTaskCreated = await createPloomesTask({
             ContactId: createdPloomesContact,
-            Title: 'Venda Realizada',
-            Description: `Entrar em contato com o cliente.`,
+            Title: `Venda Realizada - ${dayjs(nfeDetails.dataEmissao).format(
+              'DD/MM/YYYY',
+            )}`,
+            Description: `
+            ${nfeDetails.itens
+              .map(
+                (item) => `
+            ➡️ Produto: ${item.descricao}
+            ➡️ Preço: ${currencyFormatter.format(item.valor)}
+            ➡️ Quantidade: ${item.quantidade}
+            ➡️ Total: ${currencyFormatter.format(item.valorTotal)}
+            `,
+              )
+              .join('\n')}
+            💲 Total da Nota: ${currencyFormatter.format(nfeDetails.valorNota)}
+          `,
           })
 
           logger.success(
@@ -92,8 +116,22 @@ export const handler = async () => {
           )
           const existingContactTaskCreated = await createPloomesTask({
             ContactId: existingPloomesContactResponse,
-            Title: 'Venda Realizada',
-            Description: `Entrar em contato com o cliente.`,
+            Title: `Venda Realizada - ${dayjs(nfeDetails.dataEmissao).format(
+              'DD/MM/YYYY',
+            )}`,
+            Description: `
+            ${nfeDetails.itens
+              .map(
+                (item) => `
+            ➡️ Produto: ${item.descricao}
+            ➡️ Preço: ${currencyFormatter.format(item.valor)}
+            ➡️ Quantidade: ${item.quantidade}
+            ➡️ Total: ${currencyFormatter.format(item.valorTotal)}
+            `,
+              )
+              .join('\n')}
+            💲 Total da Nota: ${currencyFormatter.format(nfeDetails.valorNota)}
+          `,
           })
 
           logger.success(
@@ -106,3 +144,4 @@ export const handler = async () => {
     }
   }
 }
+handler()

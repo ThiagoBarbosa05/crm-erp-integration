@@ -6,6 +6,7 @@ import { BlingNfe } from '../interfaces/bling-nfe'
 import { BlingContactDetails } from '../interfaces/bling-contact-details'
 import { blingLimiter } from '../utils/rate-limiter'
 import { retryWithBackOff } from './retry'
+import { NfeDetails } from '../interfaces/bling-nfe-details'
 
 export async function getBlingNfes() {
   const accessToken = await getBlingAccessToken()
@@ -34,6 +35,27 @@ export async function getBlingNfes() {
   )
 
   return nonDuplicateContacts
+}
+
+export async function getNfeDetails(nfeId: number) {
+  const accessToken = await getBlingAccessToken()
+
+  const nfeDetailsResponse = await blingLimiter.schedule(() =>
+    retryWithBackOff(() =>
+      axios.get<{ data: NfeDetails }>(
+        `https://api.bling.com.br/Api/v3/nfe/${nfeId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      ),
+    ),
+  )
+
+  const nfeDetails = nfeDetailsResponse.data.data
+
+  return nfeDetails
 }
 
 export async function getBlingContact(
