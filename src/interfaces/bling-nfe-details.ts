@@ -1,3 +1,5 @@
+import { BlingProduct } from './product'
+
 export interface NfeDetails {
   id: number
   numero: string
@@ -23,11 +25,5 @@ export interface NfeDetails {
     id: number
   }
   valorNota: number
-  itens: {
-    codigo: string
-    descricao: string
-    quantidade: number
-    valor: number
-    valorTotal: number
-  }[]
+  itens: BlingProduct[]
 }
