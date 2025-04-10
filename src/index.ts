@@ -50,6 +50,8 @@ export const handler = async () => {
           `✅ Contato encontrado - ${nfe.contato.nome} - ${existingPloomesContactResponse}`,
         )
 
+        const owner = await getOwner(nfeDetails.vendedor.id)
+
         if (existingPloomesContactResponse === null) {
           const contactLocation = await getContactLocation(
             nfeDetails.contato.endereco.municipio,
@@ -58,7 +60,6 @@ export const handler = async () => {
           logger.info(
             `⏳ Buscando responsável pelo contato - ${nfe.contato.nome}`,
           )
-          const owner = await getOwner(nfeDetails.vendedor.id)
 
           logger.info(`🧑‍💻 Criando contato no Ploomes - ${nfe.contato.nome}`)
           const createdPloomesContact = await createPloomesContact(
@@ -87,12 +88,13 @@ export const handler = async () => {
           logger.info(
             `🧑‍💻 Criando tarefa para o contato ${nfeDetails.contato.nome}`,
           )
-          const newContactTaskCreated = await createPloomesTask({
-            ContactId: createdPloomesContact,
-            Title: `Venda Realizada - ${dayjs(nfeDetails.dataEmissao).format(
-              'DD/MM/YYYY',
-            )}`,
-            Description: `
+          const newContactTaskCreated = await createPloomesTask(
+            {
+              ContactId: createdPloomesContact,
+              Title: `Venda Realizada - ${dayjs(nfeDetails.dataEmissao).format(
+                'DD/MM/YYYY',
+              )}`,
+              Description: `
             ${nfeDetails.itens
               .map(
                 (item) => `
@@ -105,7 +107,9 @@ export const handler = async () => {
               .join('\n')}
             💲 Total da Nota: ${currencyFormatter.format(nfeDetails.valorNota)}
           `,
-          })
+            },
+            owner.ploomesId,
+          )
 
           logger.success(
             `✅ Task ${newContactTaskCreated.TaskId} criada com sucesso`,
@@ -114,12 +118,13 @@ export const handler = async () => {
           logger.info(
             `🧑‍💻 Criando tarefa para o contato existente - ${nfe.contato.nome}`,
           )
-          const existingContactTaskCreated = await createPloomesTask({
-            ContactId: existingPloomesContactResponse,
-            Title: `Venda Realizada - ${dayjs(nfeDetails.dataEmissao).format(
-              'DD/MM/YYYY',
-            )}`,
-            Description: `
+          const existingContactTaskCreated = await createPloomesTask(
+            {
+              ContactId: existingPloomesContactResponse,
+              Title: `Venda Realizada - ${dayjs(nfeDetails.dataEmissao).format(
+                'DD/MM/YYYY',
+              )}`,
+              Description: `
             ${nfeDetails.itens
               .map(
                 (item) => `
@@ -132,7 +137,9 @@ export const handler = async () => {
               .join('\n')}
             💲 Total da Nota: ${currencyFormatter.format(nfeDetails.valorNota)}
           `,
-          })
+            },
+            owner.ploomesId,
+          )
 
           logger.success(
             `✅ Task ${existingContactTaskCreated.TaskId} criada com sucesso`,

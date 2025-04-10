@@ -96,14 +96,26 @@ export async function createPloomesContact(
 
 export async function createPloomesTask(
   task: CreatePloomesTask,
+  userId: number,
 ): Promise<{ TaskId: number }> {
   const response = await ploomesLimiter.schedule(() =>
     retryWithBackOff(() =>
-      axios.post('https://api2.ploomes.com/Tasks', task, {
-        headers: {
-          'User-Key': `${process.env.PLOOMES_USER_KEY}`,
+      axios.post(
+        'https://api2.ploomes.com/Tasks',
+        {
+          ...task,
+          Users: [
+            {
+              UserId: userId,
+            },
+          ],
         },
-      }),
+        {
+          headers: {
+            'User-Key': `${process.env.PLOOMES_USER_KEY}`,
+          },
+        },
+      ),
     ),
   )
 
