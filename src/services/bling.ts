@@ -11,8 +11,8 @@ import { NfeDetails } from '../interfaces/bling-nfe-details'
 export async function getBlingNfes() {
   const accessToken = await getBlingAccessToken()
 
-  const startOfDay = dayjs().startOf('day').subtract(3, 'day')
-  const endOfDay = dayjs().endOf('day').subtract(3, 'day')
+  const startOfDay = dayjs().startOf('day')
+  const endOfDay = dayjs().endOf('day')
 
   const response = await blingLimiter.schedule(() =>
     retryWithBackOff(() =>
