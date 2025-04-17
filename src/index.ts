@@ -197,7 +197,7 @@ export const handler = async () => {
         })
       } else {
         logger.info(`
-          ‼️ Venda ${nfe.id} já processada
+          ‼️ Venda ${nfe.id} já processada.
         `)
       }
 
